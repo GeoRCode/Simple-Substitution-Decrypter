@@ -98,8 +98,8 @@ while 1:
         count += 1
 
 
-    # Se evalúa si el puntaje padre es mayor al valor final. Si esto se cumple, 
-    # se establecen los valores del padre como los mejores valores
+    # Se evalúa si el puntaje del padre es mayor al valor final. Si esto se
+    # cumple, se establecen los valores del padre como los mejores valores
     if parentScore > finalScore:
         bestGen, finalScore, bestKey, bestGuess = (
             currentGen,
@@ -108,7 +108,7 @@ while 1:
             parentGuess[:],
         )
 
-    # Se evalúa si es puntaje final es igual al puntaje de validación. En caso 
+    # Se evalúa si el puntaje final es igual al puntaje de validación. En caso 
     # de que se cumpla, se acumula la iteración ya que se define que cuando se
     # cumple esto 100 veces, el mensaje ya fue desencriptado y se rompe el ciclo
     if finalScore == validScore:
