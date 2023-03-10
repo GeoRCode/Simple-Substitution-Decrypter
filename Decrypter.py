@@ -4,7 +4,7 @@ from colored import fg, attr
 
 
 # Función que calcula el fitness score de cada quadgram
-def calcScore(text, quadgrams):
+def calc_score(text, quadgrams):
     text = "".join(text)
     score = 0
     quads = quadgrams.__getitem__
@@ -14,6 +14,7 @@ def calcScore(text, quadgrams):
         else:
             score += floor
     return score
+
 
 # Se crea diccionario con cada uno de los quadgrams en el inglés y su respectiva frecuencia
 quadgrams = {}
@@ -28,124 +29,128 @@ for quad in quadgrams.keys():
 floor = math.log10(0.01 / n)
 
 # Se le pide al usuario la frase a desencriptar
-OriginalText = input("Enter crypted text:\n")
-text = OriginalText.upper()
+original_text = input("Enter crypted text:\n")
+text = original_text.upper()
+print("\n" * 3)
 
 # Se crea lista con el alfabeto en inglés y la primera clave
 alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-bestKey = alphabet[:]
+best_key = alphabet[:]
 
 # Se explora el texto para encontrar caracteres especiales, estos se extraen y
 # se guardan en una lista con su respectivo index
-specialChars = []
+special_chars = []
 count = 0
 for char in text:
     if char not in alphabet:
-        specialChars.append((char, text.index(char) + count))
+        special_chars.append((char, text.index(char) + count))
         text = text.replace(char, "", 1)
         count += 1
 
-# Se asignan los valores iniciales del puntaje de la oración inicial, 
+# Se asignan los valores iniciales del puntaje de la oración inicial,
 # el puntaje de validación y se le da un valor muy pequeño al
 # valor final para hacer una validación adecuada con los puntajes
 # obtenidos en cada iteración
-initialScore = calcScore(list(text), quadgrams)
-validScore = None
-finalScore = -99e9
+initial_score, valid_score, final_score = calc_score(list(text), quadgrams), None, -99e9
 
 # Valores iniciales del padre para el algoritmo genético
-random.shuffle(bestKey)
-parentKey, parentScore, parentGuess = bestKey[:], finalScore, []
+random.shuffle(best_key)
+parent_key, parent_score, parent_guess = best_key[:], final_score, []
 
+up, refresh = "\x1B[3A", "\x1B[0K"
 reset = fg(15) + attr(0)
-noChanges = 0
-currentGen = 0
+no_changes = 0
+current_gen = 0
 
 # Inicializamos el algoritmo genético
 while 1:
-    currentGen += 1
+    current_gen += 1
+
     # Se obtiene la clave del padre y el fitness score de su predicción
     for char in text:
         idx = alphabet.index(char)
-        parentGuess.append(parentKey[idx])
-    parentScore = calcScore(parentGuess, quadgrams)
+        parent_guess.append(parent_key[idx])
+    parent_score = calc_score(parent_guess, quadgrams)
 
-    count = 0
     # Inicializamos el ciclo para calcular los valores de los hijos
+    count = 0
     while count < 100:
         a = random.randint(0, len(alphabet) - 1)
         b = random.randint(0, len(alphabet) - 1)
 
-        childKey, childGuess = parentKey[:], []
-        childKey[a], childKey[b] = childKey[b], childKey[a]
+        child_key, child_guess = parent_key[:], []
+        child_key[a], child_key[b] = child_key[b], child_key[a]
 
         # Se obtiene la clave del hijo y el fitness score de su predicción
         for char in text:
             idx = alphabet.index(char)
-            childGuess.append(childKey[idx])
-        childScore = calcScore(childGuess, quadgrams)
+            child_guess.append(child_key[idx])
+        child_score = calc_score(child_guess, quadgrams)
 
         # Se evalúa si el puntaje del hijo es mayor al del padre. En caso
         # de ser así, se establece el hijo como nuevo padre el cual empieza
         # de nuevo a generar hijos
-        if childScore > parentScore:
-            parentScore, parentKey, parentGuess = (
-                childScore,
-                childKey[:],
-                childGuess[:],
+        if child_score > parent_score:
+            parent_score, parent_key, parent_guess = (
+                child_score,
+                child_key[:],
+                child_guess[:],
             )
             count = 0
         count += 1
 
-
     # Se evalúa si el puntaje del padre es mayor al valor final. Si esto se
     # cumple, se establecen los valores del padre como los mejores valores
-    if parentScore > finalScore:
-        bestGen, finalScore, bestKey, bestGuess = (
-            currentGen,
-            parentScore,
-            parentKey[:],
-            parentGuess[:],
+    if parent_score > final_score:
+        best_gen, final_score, best_key, best_guess = (
+            current_gen,
+            parent_score,
+            parent_key[:],
+            parent_guess[:],
         )
 
-    # Se evalúa si el puntaje final es igual al puntaje de validación. En caso 
+    # Se evalúa si el puntaje final es igual al puntaje de validación. En caso
     # de que se cumpla, se acumula la iteración ya que se define que cuando se
     # cumple esto 100 veces, el mensaje ya fue desencriptado y se rompe el ciclo
-    if finalScore == validScore:
-        noChanges += 1
-        if noChanges == 100:
+    if final_score == valid_score:
+        no_changes += 1
+        if no_changes == 100:
             break
     else:
-        noChanges = 0
+        no_changes = 0
 
-    validScore = finalScore
+    valid_score = final_score
 
-    print(
-        f"\nCurrent generation: {fg(4)}{attr(1)}{currentGen}{reset} - Score: {fg(1)}{attr(1)}{finalScore}{reset}"
-    )
-    print(f"Guessed text: {fg(243)}{attr(1)}{''.join(bestGuess)}{reset}")
+    # Se imprimen los resultados de cada generación
+    if len(best_guess) > 140:
+        print(
+            f"{up}Current generation: {fg(4)}{attr(1)}{current_gen}{reset} - Score: {fg(1)}{attr(1)}{final_score}{reset}{refresh}\nGuessed text: {fg(243)}{attr(1)}{''.join(best_guess)}{reset}{refresh}"
+        )
+    else:
+        print(
+            f"{up}Current generation: {fg(4)}{attr(1)}{current_gen}{reset} - Score: {fg(1)}{attr(1)}{final_score}{reset}{refresh}\nGuessed text: {fg(243)}{attr(1)}{''.join(best_guess)}{reset}{refresh}\n"
+        )
 
 # Se agregan los caracteres especiales que fueron retirados del mensaje
-for char in specialChars:
-    sC, idx = char
-    bestGuess.insert(idx, sC)
+for char in special_chars:
+    special_char, idx = char
+    best_guess.insert(idx, special_char)
 
 # Se agregan las mayúsculas en las posiciones adecuadas
-for i in range(len(OriginalText)):
-    if not OriginalText[i].isupper():
-        bestGuess[i] = bestGuess[i].lower()
+for i in range(len(original_text)):
+    if not original_text[i].isupper():
+        best_guess[i] = best_guess[i].lower()
 
-bestGuess = "".join(bestGuess)
-maxScore = finalScore - initialScore
+best_guess = "".join(best_guess)
+max_score = final_score - initial_score
 
+# Se imprimen los resultados finales
 print(
-    f"\n\nDecrypted in Generation {fg(2)}{attr(1)}{bestGen}{reset} with a Fitness Score increase of {fg(2)}{attr(1)}{maxScore}{reset} points"
+    f"""\nDecrypted in Generation {fg(2)}{attr(1)}{best_gen}{reset} with a Fitness Score increase of {fg(2)}{attr(1)}{max_score}{reset} points
+    Initial Score: {fg(208)}{initial_score}{reset} - Final Score: {fg(3)}{final_score}{reset}
+    Key: {fg(4)}{''.join(alphabet)}{reset}
+         ˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅
+         {fg(6)}{attr(1)}{''.join(best_key)}{reset}
+    Crypted text: {fg(1)}{original_text}{reset}
+  Decrypted text: {fg(2)}{best_guess}{reset}""",
 )
-print(
-    f"    Initial Score: {fg(208)}{initialScore}{reset} - Final Score: {fg(3)}{finalScore}{reset}"
-)
-print(
-    f"    Key: {fg(4)}{''.join(alphabet)}{reset}\n         ˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅\n         {fg(6)}{attr(1)}{''.join(bestKey)}{reset}"
-)
-print(f"      Crypted text: {fg(1)}{OriginalText}{reset}")
-print(f"    Decrypted text: {fg(2)}{bestGuess}{reset}")
