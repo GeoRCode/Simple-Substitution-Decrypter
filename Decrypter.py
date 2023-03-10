@@ -16,13 +16,13 @@ def calcScore(text, quadgrams):
             score += floor
     return score
 
-# se crea diccionario con cada uno de los quagrams en inglés y su respectiva frecuencia
+# Se crea diccionario con cada uno de los quagrams en inglés y su respectiva frecuencia
 quadgrams = {}
 for line in open("english_quadgrams.txt"):
     quad, num = line.split(" ")
     quadgrams[quad] = int(num)
 
-# se calcula la probabilidad logarítmica de cada quagrams
+# Se calcula la probabilidad logarítmica de cada quagrams
 n = sum(quadgrams.values())
 for quad in quadgrams.keys():
     quadgrams[quad] = math.log10(float(quadgrams[quad] / n))
@@ -37,7 +37,7 @@ alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 bestKey = alphabet[:]
 
 # Se explora el texto para encontrar caracteres especiales, estos se extraen y
-# se guardan en una lista con su respectivo index
+# Se guardan en una lista con su respectivo index
 specialChars = []
 count = 0
 for char in text:
@@ -71,7 +71,7 @@ while 1:
     parentScore = calcScore(parentGuess, quadgrams)
 
     count = 0
-    # inicializamos el ciclo para calcular los valores del hijo.
+    # Inicializamos el ciclo para calcular los valores del hijo.
     while count < 100:
         a = random.randint(0, len(alphabet) - 1)
         b = random.randint(0, len(alphabet) - 1)
@@ -79,7 +79,7 @@ while 1:
         childKey, childGuess = parentKey[:], []
         childKey[a], childKey[b] = childKey[b], childKey[a]
 
-        # se obtiene el fitness score para la llave hijo.
+        # Se obtiene el fitness score para la llave hijo.
         for char in text:
             idx = alphabet.index(char)
             childGuess.append(childKey[idx])
@@ -109,7 +109,7 @@ while 1:
             parentGuess[:],
         )
 
-    """se evalúa si es puntaje final es igual al validScore en caso de que se cumpla
+    """ Se evalúa si es puntaje final es igual al validScore en caso de que se cumpla
     se acumula la iteración, ya que se define que cuando se cumpla esto 100 veces
     el mensaje ya fue desencriptad y se rompe el ciclo."""
     if finalScore == validScore:
@@ -126,12 +126,12 @@ while 1:
     )
     print(f"Guessed text: {fg(243)}{attr(1)}{''.join(bestGuess)}{reset}")
 
-# se agregan los caracteres especiales que fueron retirados del mensaje.
+# Se agregan los caracteres especiales que fueron retirados del mensaje.
 for char in specialChars:
     sC, idx = char
     bestGuess.insert(idx, sC)
 
-# se agregan las mayúsculas en las posiciones adecuadas.
+# Se agregan las mayúsculas en las posiciones adecuadas.
 for i in range(len(OriginalText)):
     if not OriginalText[i].isupper():
         bestGuess[i] = bestGuess[i].lower()
